@@ -7,6 +7,7 @@ import React, {
   ReactNode,
 } from 'react';
 import classNames from 'classnames';
+import { EventDataNode } from 'rc-tree/lib/interface';
 import animation from '../_util/openAnimation';
 import RcTree, { TreeNode } from '../rc-components/tree';
 import { TreeEvent } from './enum';
@@ -15,6 +16,7 @@ import Progress from '../progress';
 import { ProgressType } from '../progress/enum';
 import { Size } from '../_util/enum';
 import { getPrefixCls } from '../configure';
+import DirectoryTree from './DirectoryTree';
 
 export { TreeNode };
 
@@ -60,6 +62,7 @@ export interface TreeNodeProps {
 export interface TreeNodeEvent {
   event: TreeEvent;
   node: TreeNode;
+  nativeEvent: MouseEvent;
   checked?: boolean;
   checkedNodes?: TreeNode[];
   selected?: boolean;
@@ -101,6 +104,10 @@ export interface TreeProps {
   selectedKeys?: string[];
   /** 默认选中的树节点 */
   defaultSelectedKeys?: string[];
+  /** 单击事件 */
+  onClick?: (event: React.MouseEvent<HTMLElement>, node: EventDataNode) => void;
+  /** 双击事件 */
+  onDoubleClick?: (event: React.MouseEvent<HTMLElement>, node: EventDataNode) => void;
   /** 展开/收起节点时触发 */
   onExpand?: (expandedKeys: string[], e: TreeNodeExpandEvent) => void | PromiseLike<any>;
   /** 点击复选框触发 */
@@ -138,6 +145,18 @@ export interface TreeProps {
   selectable?: boolean;
   defaultExpandParent?: boolean;
   children?: any;
+  blockNode?: boolean;
+  treeData?: Array<TreeNodeNormal>;
+}
+
+export interface TreeNodeNormal {
+  title?: React.ReactNode;
+  key: string;
+  isLeaf?: boolean;
+  disabled?: boolean;
+  disableCheckbox?: boolean;
+  selectable?: boolean;
+  children?: TreeNodeNormal[];
 }
 
 export default class Tree extends Component<TreeProps, any> {
@@ -145,11 +164,16 @@ export default class Tree extends Component<TreeProps, any> {
 
   static TreeNode = TreeNode;
 
+  static DirectoryTree = DirectoryTree;
+
   static defaultProps = {
     checkable: false,
     showIcon: false,
     openAnimation: animation,
+    blockNode: false,
   };
+
+  tree: any;
 
   renderSwitcherIcon = ({ isLeaf, loading }: TreeNodeProps) => {
     const { showLine, switcherIcon } = this.props;
@@ -187,6 +211,10 @@ export default class Tree extends Component<TreeProps, any> {
     return getPrefixCls('tree', prefixCls);
   }
 
+  setTreeRef = (node: any) => {
+    this.tree = node;
+  };
+
   render() {
     const props = this.props;
     const { className, showIcon, checkable, children } = props;
@@ -194,6 +222,7 @@ export default class Tree extends Component<TreeProps, any> {
     return (
       <RcTree
         {...props}
+        ref={this.setTreeRef}
         className={classNames(!showIcon && `${prefixCls}-icon-hide`, className)}
         checkable={checkable ? <span className={`${prefixCls}-checkbox-inner`} /> : checkable}
         switcherIcon={this.renderSwitcherIcon}

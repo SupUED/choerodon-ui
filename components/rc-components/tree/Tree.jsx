@@ -30,10 +30,7 @@ export const contextTypes = {
     showIcon: PropTypes.bool,
     icon: PropTypes.oneOfType([PropTypes.node, PropTypes.func]),
     draggable: PropTypes.bool,
-    checkable: PropTypes.oneOfType([
-      PropTypes.bool,
-      PropTypes.node,
-    ]),
+    checkable: PropTypes.oneOfType([PropTypes.bool, PropTypes.node]),
     checkStrictly: PropTypes.bool,
     disabled: PropTypes.bool,
     openTransitionName: PropTypes.string,
@@ -73,10 +70,7 @@ class Tree extends Component {
     selectable: PropTypes.bool,
     disabled: PropTypes.bool,
     multiple: PropTypes.bool,
-    checkable: PropTypes.oneOfType([
-      PropTypes.bool,
-      PropTypes.node,
-    ]),
+    checkable: PropTypes.oneOfType([PropTypes.bool, PropTypes.node]),
     checkStrictly: PropTypes.bool,
     draggable: PropTypes.bool,
     defaultExpandParent: PropTypes.bool,
@@ -85,10 +79,7 @@ class Tree extends Component {
     defaultExpandedKeys: PropTypes.arrayOf(PropTypes.string),
     expandedKeys: PropTypes.arrayOf(PropTypes.string),
     defaultCheckedKeys: PropTypes.arrayOf(PropTypes.string),
-    checkedKeys: PropTypes.oneOfType([
-      PropTypes.arrayOf(PropTypes.string),
-      PropTypes.object,
-    ]),
+    checkedKeys: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.string), PropTypes.object]),
     defaultSelectedKeys: PropTypes.arrayOf(PropTypes.string),
     selectedKeys: PropTypes.arrayOf(PropTypes.string),
     onExpand: PropTypes.func,
@@ -118,6 +109,7 @@ class Tree extends Component {
     showIcon: true,
     selectable: true,
     multiple: false,
+    blockNode: false,
     checkable: false,
     disabled: false,
     checkStrictly: false,
@@ -155,7 +147,7 @@ class Tree extends Component {
 
     // Sync state with props
     const { checkedKeys = [], halfCheckedKeys = [] } =
-    calcCheckedKeys(defaultCheckedKeys, props) || {};
+      calcCheckedKeys(defaultCheckedKeys, props) || {};
 
     const state = {
       selectedKeys: calcSelectedKeys(defaultSelectedKeys, props),
@@ -182,9 +174,18 @@ class Tree extends Component {
 
   getChildContext() {
     const {
-      prefixCls, selectable, showIcon, icon, draggable, checkable, checkStrictly, disabled,
-      loadData, filterTreeNode,
-      openTransitionName, openAnimation,
+      prefixCls,
+      selectable,
+      showIcon,
+      icon,
+      draggable,
+      checkable,
+      checkStrictly,
+      disabled,
+      loadData,
+      filterTreeNode,
+      openTransitionName,
+      openAnimation,
       switcherIcon,
     } = this.props;
 
@@ -263,10 +264,7 @@ class Tree extends Component {
     const dropPosition = calcDropPosition(event, node);
 
     // Skip if drag node is self
-    if (
-      this.dragNode.props.eventKey === eventKey &&
-      dropPosition === 0
-    ) {
+    if (this.dragNode.props.eventKey === eventKey && dropPosition === 0) {
       this.setState({
         dragOverNodeKey: '',
         dropPosition: null,
@@ -290,7 +288,7 @@ class Tree extends Component {
       if (!this.delayedDragEnterLogic) {
         this.delayedDragEnterLogic = {};
       }
-      Object.keys(this.delayedDragEnterLogic).forEach((key) => {
+      Object.keys(this.delayedDragEnterLogic).forEach(key => {
         clearTimeout(this.delayedDragEnterLogic[key]);
       });
       this.delayedDragEnterLogic[pos] = setTimeout(() => {
@@ -342,7 +340,7 @@ class Tree extends Component {
     });
 
     if (dragNodesKeys.indexOf(eventKey) !== -1) {
-      warning(false, 'Can not drop to dragNode(include it\'s children node)');
+      warning(false, "Can not drop to dragNode(include it's children node)");
       return;
     }
 
@@ -399,6 +397,7 @@ class Tree extends Component {
         selected: targetSelected,
         node: treeNode,
         selectedNodes,
+        nativeEvent: e.nativeEvent,
       };
       onSelect(selectedKeys, eventObj);
     }
@@ -422,10 +421,7 @@ class Tree extends Component {
       this.checkedBatch = {
         list: [],
       };
-      warning(
-        false,
-        'Checked batch not init. This should be a bug. Please fire a issue.',
-      );
+      warning(false, 'Checked batch not init. This should be a bug. Please fire a issue.');
     }
 
     this.checkedBatch.list.push({ key, checked, halfChecked });
@@ -517,8 +513,9 @@ class Tree extends Component {
     const targetExpanded = !expanded;
 
     warning(
-      (expanded && index !== -1) || (!expanded && index === -1)
-      , 'Expand state not sync with index check');
+      (expanded && index !== -1) || (!expanded && index === -1),
+      'Expand state not sync with index check',
+    );
 
     if (targetExpanded) {
       expandedKeys = arrAdd(expandedKeys, eventKey);
@@ -585,14 +582,16 @@ class Tree extends Component {
     // And no need to check when prev props not provided
     if (prevProps && checkSync('children')) {
       const { checkedKeys = [], halfCheckedKeys = [] } =
-      calcCheckedKeys(props.checkedKeys || this.state.checkedKeys, props) || {};
+        calcCheckedKeys(props.checkedKeys || this.state.checkedKeys, props) || {};
       newState.checkedKeys = checkedKeys;
       newState.halfCheckedKeys = halfCheckedKeys;
     }
 
     // Re-calculate when autoExpandParent or expandedKeys changed
     if (prevProps && (checkSync('autoExpandParent') || checkSync('expandedKeys'))) {
-      newState.expandedKeys = props.autoExpandParent ? calcExpandedKeys(props.expandedKeys, props) : props.expandedKeys;
+      newState.expandedKeys = props.autoExpandParent
+        ? calcExpandedKeys(props.expandedKeys, props)
+        : props.expandedKeys;
     }
 
     if (checkSync('selectedKeys')) {
@@ -601,7 +600,7 @@ class Tree extends Component {
 
     if (checkSync('checkedKeys')) {
       const { checkedKeys = [], halfCheckedKeys = [] } =
-      calcCheckedKeys(props.checkedKeys, props) || {};
+        calcCheckedKeys(props.checkedKeys, props) || {};
       newState.checkedKeys = checkedKeys;
       newState.halfCheckedKeys = halfCheckedKeys;
     }
@@ -612,7 +611,7 @@ class Tree extends Component {
   /**
    * Only update the value which is not in props
    */
-  setUncontrolledState = (state) => {
+  setUncontrolledState = state => {
     let needSync = false;
     const newState = {};
 
@@ -626,7 +625,7 @@ class Tree extends Component {
     this.setState(needSync ? newState : null);
   };
 
-  isKeyChecked = (key) => {
+  isKeyChecked = key => {
     const { checkedKeys = [] } = this.state;
     return checkedKeys.indexOf(key) !== -1;
   };
@@ -637,10 +636,13 @@ class Tree extends Component {
    */
   renderTreeNode = (child, index, level = 0) => {
     const {
-      expandedKeys = [], selectedKeys = [], halfCheckedKeys = [],
-      dragOverNodeKey, dropPosition,
+      expandedKeys = [],
+      selectedKeys = [],
+      halfCheckedKeys = [],
+      dragOverNodeKey,
+      dropPosition,
     } = this.state;
-    const {} = this.props;
+    const { blockNode = false } = this.props;
     const pos = getPosition(level, index);
     const key = child.key || pos;
 
@@ -651,6 +653,7 @@ class Tree extends Component {
       checked: this.isKeyChecked(key),
       halfChecked: halfCheckedKeys.indexOf(key) !== -1,
       pos,
+      blockNode,
 
       // [Legacy] Drag props
       dragOver: dragOverNodeKey === key && dropPosition === 0,
@@ -660,11 +663,7 @@ class Tree extends Component {
   };
 
   render() {
-    const {
-      prefixCls, className, focusable,
-      showLine,
-      children,
-    } = this.props;
+    const { prefixCls, className, focusable, showLine, children } = this.props;
     const domProps = {};
 
     // [Legacy] Commit: 0117f0c9db0e2956e92cb208f51a42387dfcb3d1
