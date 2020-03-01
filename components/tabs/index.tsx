@@ -14,7 +14,8 @@ import Icon from '../icon';
 import warning from '../_util/warning';
 import isFlexSupported from '../_util/isFlexSupported';
 import RcTabs, { TabContent, TabPane } from '../rc-components/tabs';
-import ScrollableInkTabBar from '../rc-components/tabs/ScrollableInkTabBar';
+import omit from 'lodash/omit';
+import TabBar from './TabBar';
 import { generateKey } from '../rc-components/tabs/utils';
 import { Size } from '../_util/enum';
 import { TabsPosition, TabsType } from './enum';
@@ -39,6 +40,10 @@ export interface TabsProps {
   className?: string;
   animated?: boolean | { inkBar: boolean; tabPane: boolean };
   tabBarGutter?: number;
+  renderTabBar?: (
+    props: TabsProps,
+    DefaultTabBar: React.ComponentClass<any>,
+  ) => React.ReactElement<any>;
 }
 
 // Tabs
@@ -103,17 +108,11 @@ export default class Tabs extends Component<TabsProps, any> {
       type = TabsType.line,
       tabPosition,
       children,
-      tabBarStyle,
       hideAdd,
-      onTabClick,
-      onPrevClick,
-      onNextClick,
       animated = true,
-      tabBarGutter,
     } = this.props;
     let { tabBarExtraContent } = this.props;
     const prefixCls = getPrefixCls('tabs', customizePrefixCls);
-    const inkBarAnimated = typeof animated === 'object' ? animated.inkBar : animated;
     let tabPaneAnimated = typeof animated === 'object' ? animated.tabPane : animated;
 
     // card tabs should not have animation
@@ -171,16 +170,10 @@ export default class Tabs extends Component<TabsProps, any> {
       <div className={`${prefixCls}-extra-content`}>{tabBarExtraContent}</div>
     ) : null;
 
+    const { ...tabBarProps } = this.props;
+
     const renderTabBar = () => (
-      <ScrollableInkTabBar
-        inkBarAnimated={inkBarAnimated}
-        extraContent={tabBarExtraContent}
-        onTabClick={onTabClick}
-        onPrevClick={onPrevClick}
-        onNextClick={onNextClick}
-        style={tabBarStyle}
-        tabBarGutter={tabBarGutter}
-      />
+      <TabBar {...omit(tabBarProps, ['className'])} tabBarExtraContent={tabBarExtraContent} />
     );
 
     return (
